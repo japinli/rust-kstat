@@ -4,8 +4,6 @@ use std::borrow::Cow;
 /// The types of data a kstat named/value pair can contain
 #[derive(Debug)]
 pub enum KstatNamedData {
-    /// KSTAT_DATA_CHAR
-    DataChar(i8),
     /// KSTAT_DATA_INT32
     DataInt32(i32),
     /// KSTAT_DATA_UINT32
@@ -14,7 +12,7 @@ pub enum KstatNamedData {
     DataInt64(i64),
     /// KSTAT_DATA_UINT64 or KSTAT_DATA_ULONG
     DataUInt64(u64),
-    /// KSTAT_DATA_STRING
+    /// KSTAT_DATA_CHAR or KSTAT_DATA_STRING
     DataString(String),
 }
 
@@ -44,7 +42,9 @@ impl KstatNamed {
 impl<'a> From<&'a KstatNamed> for KstatNamedData {
     fn from(t: &'a KstatNamed) -> Self {
         match t.get_data_type() {
-            ffi::KSTAT_DATA_CHAR => KstatNamedData::DataChar(unsafe { (*t.inner).value_as_char() }),
+            ffi::KSTAT_DATA_CHAR => {
+                KstatNamedData::DataString(unsafe { (*t.inner).value_as_str() })
+            }
             ffi::KSTAT_DATA_INT32 => {
                 KstatNamedData::DataInt32(unsafe { (*t.inner).value_as_i32() })
             }
